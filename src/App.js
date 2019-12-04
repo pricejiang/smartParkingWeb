@@ -1,6 +1,6 @@
 import React , { Component } from 'react';
 import './App.css';
-import {Menu, Button} from 'semantic-ui-react';
+import {Menu} from 'semantic-ui-react';
 import Home from './Components/Home';
 import MyMeter from './Components/MyMeter';
 import Settings from './Components/Settings';
@@ -13,7 +13,8 @@ import {
     Redirect
  } from "react-router-dom";
 
-import firebase from 'firebase';
+import firebase, { app } from 'firebase';
+import { db } from "./Components/firebase-init"
 
 
 
@@ -47,6 +48,85 @@ class SignInScreen extends Component{
     
 }
 
+const SignUpView = ({ onSubmit }) => {
+    return (
+      <div>
+        <h1>Sign up</h1>
+        <form onSubmit={onSubmit}>
+            <label>
+            Name
+            <input
+              name="name"
+              type="name"
+              placeholder="Name"
+            />
+          </label>
+          <label>
+            License Plate
+            <input
+              name="number"
+              type="text"
+              placeholder="Number"
+            />
+          </label>
+          <label>
+            Email
+            <input
+              name="email"
+              type="email"
+              placeholder="Email"
+            />
+          </label>
+          <label>
+            Password
+            <input
+              name="password"
+              type="password"
+              placeholder="Password"
+            />
+          </label>
+          <button type="submit">Sign Up</button>
+        </form>
+      </div>
+    );
+};
+
+class SignUpScreen extends Component {
+    state = {
+        signedUp: null
+    }
+    handleSignUp = async event => {
+        event.preventDefault();
+        const { name,number,email, password } = event.target.elements;
+        try{
+            firebase.auth().createUserWithEmailAndPassword(email.value, password.value).then(() => {
+                let uid = firebase.auth().currentUser.uid;
+                if (uid != null){
+                    console.log(uid);
+                    db.collection('users').doc(uid).set({
+                        email: email.value,
+                        emailVertified: true,
+                        name: name.value,
+                        plate: number.value
+                    });
+                }
+                this.setState({signedUp: true});
+            });
+        }
+        catch(error){
+            alert(error);
+        }
+    }
+    render(){
+        const { signedUp } = this.state;
+        return (<div id="sign_up">
+                    <SignUpView onSubmit={this.handleSignUp} />
+                    {signedUp && <Redirect to='/home' /> }
+                </div>
+        );
+    }
+}
+
 
 class PrivateRoute extends Component {
     render(){
@@ -75,19 +155,37 @@ class PrivateRoute extends Component {
 class Navigation extends Component{
     // constructor(props) {
     //     super(props);
-    //     this.state = {user: firebase.auth().currentUser};
+    //     this.state = {user: null};
     // }
+    state = {loading:  true, authenticated: false, currentUser: null};
     logOutUser = ()=>{
        
         firebase.auth().signOut();
         // this.setState({user:null})
     }
-    // setUser = (user) =>{
-    //     console.log(user);
-    //     this.setState({user})
-    // }
+
+    componentWillMount(){
+        firebase.auth().onAuthStateChanged(user => {
+            if(user){
+                this.setState({
+                    authenticated: true,
+                    currentUser: user,
+                    loading: false
+                });
+            }
+            else{
+                this.setState({
+                    authenticated: false,
+                    currentUser: null,
+                    loading: true
+                });
+            }
+        })
+    }
+
     render(){ 
-        // let {user} = this.state;
+        const {currentUser} = this.state;
+        
         return(
             <Router>
                 <div id="nav">
@@ -95,11 +193,10 @@ class Navigation extends Component{
                     <Menu.Item as={Link} name='home' to='/home'/>
                     <Menu.Item as={Link} name='my meter' to='/my_meter'/>
                     <Menu.Menu position='right'>
-                        <Menu.Item as={Link} name={'User'} to='/settings'/>
-                        {/* {user? */}
-                            <Menu.Item as={Link} name='Logout' to='/home' onClick={this.logOutUser}/>:""
-                        {/* } */}
-                       
+                        {currentUser != null && <Menu.Item as={Link} name={'User'} to='/settings'/>}
+                        {currentUser != null && <Menu.Item as={Link} name='Logout' to='/home' onClick={this.logOutUser}/>}
+                        {(currentUser == null) && <Menu.Item as={Link} name='Sign-up' to='/sign_up'/>}
+                        {(currentUser == null) && <Menu.Item as={Link} name='Sign-in' to='/sign_in'/>}
                     </Menu.Menu>
                 </Menu>
                 </div>
@@ -118,6 +215,9 @@ class Navigation extends Component{
                     </PrivateRoute>
                     <Route path="/sign_in">
                         <SignInScreen/>
+                    </Route>
+                    <Route path="/sign_up">
+                        <SignUpScreen/>
                     </Route>
                 </Switch>
             </Router>

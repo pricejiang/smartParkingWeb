@@ -2,14 +2,23 @@ import React , { Component } from 'react';
 import { Segment, Card, Image, Icon} from 'semantic-ui-react';
 import mapImage from "../map.png"
 import { db } from "./firebase-init"
+import firebase from "firebase";
 
 export default class MyMeter extends Component{
     state={
         slots: [],
+        plate: null,
         time: 0
     }
 
     componentDidMount(){
+        let user = firebase.auth().currentUser;
+        console.log(user);
+        console.log(user.uid);
+        db.collection('users').doc(user.uid).get().then(snapshot => {
+            const data = snapshot.data();
+            this.setState({plate: data['plate']})
+        });
         db.collection('slots').get().then(snapshot => {
             const data = snapshot.docs.map(doc => doc.data());
             this.setState({slots: data});
@@ -45,12 +54,11 @@ export default class MyMeter extends Component{
    
 
     render() {
-        const {slots} = this.state;
-        const slotSelected = slots.filter((slot) => slot['availability'] === 0)[0];
+        const {slots, plate} = this.state;
+        const slotSelected = slots.filter((slot) => slot['plate'] === plate)[0];
         const timeString = this.getTime(slotSelected);
         const fee = this.calculateFee(timeString);
-        
-        
+        // console.log(plate);
         return (
             <Segment attached id="my-meter">
                 <div id="slot-detail">
@@ -64,6 +72,7 @@ export default class MyMeter extends Component{
                             <Card.Description>
                                 <p>Parking Time: {timeString}</p>
                                 <p>Fee: ${fee}</p>
+                                <p>Plate Number: {plate}</p>
                             </Card.Description>
                         </Card.Content>
                     </Card>
