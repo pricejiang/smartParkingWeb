@@ -24,7 +24,7 @@ class SignInScreen extends Component{
         // Popup signin flow rather than redirect flow.
         signInFlow: 'popup',
         // Redirect to /signedIn after sign in is successful. Alternatively you ca n provide a callbacks.signInSuccess function.
-        signInSuccessUrl: '/',
+        signInSuccessUrl: '/smartParkingWeb/home',
         'credentialHelper': 'none',
         // We will display Google and Facebook as auth providers.
         signInOptions: [
@@ -121,7 +121,7 @@ class SignUpScreen extends Component {
         const { signedUp } = this.state;
         return (<div id="sign_up">
                     <SignUpView onSubmit={this.handleSignUp} />
-                    {signedUp && <Redirect to='/home' /> }
+                    {signedUp && <Redirect to='/smartParkingWeb/home' /> }
                 </div>
         );
     }
@@ -141,7 +141,7 @@ class PrivateRoute extends Component {
                 ) : (
                     <Redirect
                     to={{
-                        pathname: "/sign_in",
+                        pathname: "/smartParkingWeb/sign_in",
                     }}
                     />
                 )
@@ -190,33 +190,33 @@ class Navigation extends Component{
             <Router>
                 <div id="nav">
                 <Menu inverted pointing attached>
-                    <Menu.Item as={Link} name='home' to='/home'/>
-                    <Menu.Item as={Link} name='my meter' to='/my_meter'/>
+                    <Menu.Item as={Link} name='home' to='/smartParkingWeb/home'/>
+                    <Menu.Item as={Link} name='my meter' to='/smartParkingWeb/my_meter'/>
                     <Menu.Menu position='right'>
-                        {currentUser != null && <Menu.Item as={Link} name={'User'} to='/settings'/>}
-                        {currentUser != null && <Menu.Item as={Link} name='Logout' to='/home' onClick={this.logOutUser}/>}
-                        {(currentUser == null) && <Menu.Item as={Link} name='Sign-up' to='/sign_up'/>}
-                        {(currentUser == null) && <Menu.Item as={Link} name='Sign-in' to='/sign_in'/>}
+                        {currentUser != null && <Menu.Item as={Link} name={'User'} to='/smartParkingWeb/settings'/>}
+                        {currentUser != null && <Menu.Item as={Link} name='Logout' to='/smartParkingWeb/home' onClick={this.logOutUser}/>}
+                        {(currentUser == null) && <Menu.Item as={Link} name='Sign-up' to='/smartParkingWeb/sign_up'/>}
+                        {(currentUser == null) && <Menu.Item as={Link} name='Sign-in' to='/smartParkingWeb/sign_in'/>}
                     </Menu.Menu>
                 </Menu>
                 </div>
                 <Switch>
-                    <Route exact path="/">
+                    <Route exact path="/smartParkingWeb">
                         <Home/>
                     </Route>
-                    <Route path="/home">
+                    <Route path="/smartParkingWeb/home">
                         <Home/>
                     </Route>
-                    <PrivateRoute  path="/my_meter">
+                    <PrivateRoute path="/smartParkingWeb/my_meter">
                         <MyMeter/>
                     </PrivateRoute>
-                    <PrivateRoute path="/settings">
+                    <PrivateRoute path="/smartParkingWeb/settings">
                         <Settings/>
                     </PrivateRoute>
-                    <Route path="/sign_in">
+                    <Route path="/smartParkingWeb/sign_in">
                         <SignInScreen/>
                     </Route>
-                    <Route path="/sign_up">
+                    <Route path="/smartParkingWeb/sign_up">
                         <SignUpScreen/>
                     </Route>
                 </Switch>
